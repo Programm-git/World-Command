@@ -6,10 +6,18 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 .screen.active { display: block; }
 
 /* ---------- Startbildschirm (pixelgenau aus dem Bild, Seitenverhältnis 1672:941) ---------- */
-#menu { background: #000; }
-.stage { position: absolute; inset: 0; margin: auto;
-  width: min(100vw, calc(100vh * 1672 / 941)); height: min(100vh, calc(100vw * 941 / 1672));
+/* Das Bild füllt den ganzen Bildschirm (cover); die Ränder werden bei Bedarf beschnitten.
+   Auf sehr schmalen Hochformat-Displays bleibt es so breit, dass die Buttons sichtbar sind;
+   der übrige Platz wird mit einer unscharfen Version desselben Bildes gefüllt. */
+#menu { background: #000; overflow: hidden; --w: min(max(100vw, calc(100vh * 1672 / 941)), 280vw); --h: calc(var(--w) * 941 / 1672); }
+#menu::before { content: ""; position: absolute; inset: -40px; background: url(img/menu.webp) center / cover no-repeat; filter: blur(22px) brightness(.8); }
+.stage { position: absolute; width: var(--w); height: var(--h);
+  left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
   background: url(img/menu.webp) center / 100% 100% no-repeat; }
+/* Sehr schmales Hochformat: Bild ist kleiner als der Bildschirm → Ober-/Unterkante weich ausblenden */
+@media (max-aspect-ratio: 635/1000) {
+  .stage { -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
+}
 .hit { position: absolute; padding: 0; border: 0; border-radius: 4%/14%; background: transparent; cursor: pointer;
   transition: background .08s; }
 .hit:hover { background: rgba(255,255,255,.07); }
