@@ -1,0 +1,14 @@
+{
+  "name": "world-command",
+  "version": "0.1.0",
+  "description": "Multiplayer-Browserspiel: Als Präsident dein Land verteidigen, angreifen und die Zivilbevölkerung schützen.",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node test/smoke.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
