@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <title>World Command</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Bildschirm 1: Spielmodus wählen -->
+  <section id="menu" class="screen active">
+    <div class="menu-buttons">
+      <button id="btn-single" class="big-btn blue"><span class="ico">👤</span>Singleplayer</button>
+      <button id="btn-multi" class="big-btn orange"><span class="ico">👥</span>Multiplayer</button>
+    </div>
+  </section>
+
+  <!-- Bildschirm 2: Land auf dem Globus auswählen -->
+  <section id="globe-screen" class="screen">
+    <button id="btn-back" class="back" aria-label="Zurück">←</button>
+    <h1>Land auswählen</h1>
+    <canvas id="globe"></canvas>
+    <button id="rot-left" class="rot left" aria-label="Nach links drehen">↶</button>
+    <button id="rot-right" class="rot right" aria-label="Nach rechts drehen">↷</button>
+    <div id="chosen" class="chosen">Tippe auf ein farbiges Land</div>
+    <button id="btn-start" class="start" disabled>Start</button>
+  </section>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="vendor/d3.min.js"></script>
+  <script src="vendor/topojson-client.min.js"></script>
+  <script src="vendor/world.js"></script>
+  <script src="game.js"></script>
+</body>
+</html>
