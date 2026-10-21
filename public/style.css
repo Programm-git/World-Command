@@ -27,6 +27,21 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 #office-screen { background: #000; overflow: hidden; }
 .office { position: absolute; inset: 0; background: center / cover no-repeat; }
 
+/* Pause-Button und -Menü im Spiel */
+.pause { display: flex; align-items: center; justify-content: center; gap: 7px; }
+.pause span { width: 7px; height: 22px; border-radius: 2px; background: #f5d27a; }
+.overlay { position: absolute; inset: 0; z-index: 5; display: flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.6); backdrop-filter: blur(3px); }
+.overlay[hidden] { display: none; }
+.panel { width: min(86vw, 380px); padding: 26px 24px 28px; border-radius: 22px; text-align: center;
+  background: linear-gradient(#222836, #12151f); border: 3px solid #c9c4b8; box-shadow: 0 14px 40px rgba(0,0,0,.7); }
+.panel h2 { margin: 0 0 20px; font-size: 32px; letter-spacing: .5px; text-shadow: 0 2px 6px rgba(0,0,0,.6); }
+.menu-btn { display: block; width: 100%; margin-top: 14px; padding: 14px 18px; font-size: 22px; font-weight: 800; color: #fff;
+  border: 3px solid #c9c4b8; border-radius: 16px; cursor: pointer; background: linear-gradient(#3a8be0, #1b4f9e);
+  text-shadow: 0 2px 3px rgba(0,0,0,.5); box-shadow: 0 5px 0 rgba(0,0,0,.35); }
+.menu-btn.primary { background: linear-gradient(#ffc030, #e08a00); border-color: #ffd36a; }
+.menu-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 rgba(0,0,0,.35); }
+
 /* ---------- Globus-Bildschirm ---------- */
 #globe-screen { background: radial-gradient(ellipse at 50% 50%, #0b1a4a 0%, #050a24 55%, #02030c 100%); }
 #globe-screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .7;

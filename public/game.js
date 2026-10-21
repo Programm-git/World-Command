@@ -13,7 +13,7 @@
 
   const $ = (id) => document.getElementById(id);
   const screens = { menu: $('menu'), globe: $('globe-screen'), office: $('office-screen') };
-  function show(name) { dirty = true; for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
+  function show(name) { dirty = true; $('pause-menu').hidden = true; for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
 
   let toastTimer;
   function toast(msg) {
@@ -25,7 +25,14 @@
   $('btn-single').onclick = () => show('globe');
   $('btn-multi').onclick = () => toast('Multiplayer folgt in Kürze');
   $('btn-back').onclick = () => show('menu');
-  $('btn-office-back').onclick = () => show('globe');
+  // Im Spiel: Pause-Button öffnet das Pausenmenü (auch mit Esc)
+  const pauseMenu = $('pause-menu');
+  $('btn-pause').onclick = () => { pauseMenu.hidden = false; };
+  $('btn-resume').onclick = () => { pauseMenu.hidden = true; };
+  $('btn-quit').onclick = () => show('menu');
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && screens.office.classList.contains('active')) pauseMenu.hidden = !pauseMenu.hidden;
+  });
 
   // ---------- Globus ----------
   const canvas = $('globe');

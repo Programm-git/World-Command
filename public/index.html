@@ -30,7 +30,14 @@
   <!-- Bildschirm 3: Büro des gewählten Landes -->
   <section id="office-screen" class="screen">
     <div id="office" class="office"></div>
-    <button id="btn-office-back" class="back" aria-label="Zurück">←</button>
+    <button id="btn-pause" class="back pause" aria-label="Pause"><span></span><span></span></button>
+    <div id="pause-menu" class="overlay" hidden>
+      <div class="panel">
+        <h2>Pause</h2>
+        <button id="btn-resume" class="menu-btn primary">Fortsetzen</button>
+        <button id="btn-quit" class="menu-btn">Zum Hauptmenü</button>
+      </div>
+    </div>
   </section>
 
   <div id="toast" class="toast"></div>
