@@ -23,6 +23,10 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 .hit:hover { background: rgba(255,255,255,.07); }
 .hit:active { background: rgba(0,0,0,.22); }
 
+/* ---------- Büro des gewählten Landes ---------- */
+#office-screen { background: #000; overflow: hidden; }
+.office { position: absolute; inset: 0; background: center / cover no-repeat; }
+
 /* ---------- Globus-Bildschirm ---------- */
 #globe-screen { background: radial-gradient(ellipse at 50% 50%, #0b1a4a 0%, #050a24 55%, #02030c 100%); }
 #globe-screen::before { content: ""; position: absolute; inset: 0; pointer-events: none; opacity: .7;

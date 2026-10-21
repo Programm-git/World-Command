@@ -3,16 +3,16 @@
 
   // Spielbare Länder (ISO-Nummer aus world-atlas). Alle anderen Länder sind grau und nicht wählbar.
   const COUNTRIES = {
-    '840': { name: 'USA',         anchor: [-98, 39],  flag: 'usa' },
-    '643': { name: 'Russland',    anchor: [95, 62],   flag: 'rus' },
-    '276': { name: 'Deutschland', anchor: [10.4, 51.1], flag: 'deu' },
-    '156': { name: 'China',       anchor: [104, 35],  flag: 'chn' },
-    '356': { name: 'Indien',      anchor: [79, 22],   flag: 'ind' },
+    '840': { name: 'USA',         anchor: [-98, 39],  flag: 'usa', office: 'img/office-usa.webp' },
+    '643': { name: 'Russland',    anchor: [95, 62],   flag: 'rus', office: 'img/office-russia.webp' },
+    '276': { name: 'Deutschland', anchor: [10.4, 51.1], flag: 'deu', office: 'img/office-germany.webp' },
+    '156': { name: 'China',       anchor: [104, 35],  flag: 'chn', office: 'img/office-china.webp' },
+    '356': { name: 'Indien',      anchor: [79, 22],   flag: 'ind', office: 'img/office-india.webp' },
     '004': { name: 'Afghanistan', anchor: [66, 33.5], flag: 'afg' },
   };
 
   const $ = (id) => document.getElementById(id);
-  const screens = { menu: $('menu'), globe: $('globe-screen') };
+  const screens = { menu: $('menu'), globe: $('globe-screen'), office: $('office-screen') };
   function show(name) { dirty = true; for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
 
   let toastTimer;
@@ -25,6 +25,7 @@
   $('btn-single').onclick = () => show('globe');
   $('btn-multi').onclick = () => toast('Multiplayer folgt in Kürze');
   $('btn-back').onclick = () => show('menu');
+  $('btn-office-back').onclick = () => show('globe');
 
   // ---------- Globus ----------
   const canvas = $('globe');
@@ -253,6 +254,7 @@
     const hit = playable.find((f) => d3.geoContains(f, ll));
     if (!hit) { toast('Dieses Land ist nicht wählbar'); return; }
     selected = hit.id; dirty = true;
+    if (COUNTRIES[hit.id].office) new Image().src = COUNTRIES[hit.id].office; // vorladen
     $('chosen').textContent = 'Gewählt: ' + COUNTRIES[hit.id].name;
     $('btn-start').disabled = false;
   }
@@ -262,8 +264,10 @@
 
   $('btn-start').onclick = () => {
     if (!selected) return;
-    // Spielstart folgt später – die Auswahl steht hier bereit.
-    window.WorldCommand = { mode: 'single', country: COUNTRIES[selected].name };
-    toast(COUNTRIES[selected].name + ' gewählt – Spielstart folgt');
+    const c = COUNTRIES[selected];
+    window.WorldCommand = { mode: 'single', country: c.name };
+    if (!c.office) { toast('Für ' + c.name + ' gibt es noch keinen Bildschirm'); return; }
+    $('office').style.backgroundImage = 'url(' + c.office + ')';
+    show('office');
   };
 })();
