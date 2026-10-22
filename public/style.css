@@ -9,11 +9,12 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 /* Das Bild füllt den ganzen Bildschirm (cover); die Ränder werden bei Bedarf beschnitten.
    Auf sehr schmalen Hochformat-Displays bleibt es so breit, dass die Buttons sichtbar sind;
    der übrige Platz wird mit einer unscharfen Version desselben Bildes gefüllt. */
-#menu { background: #000; overflow: hidden; --w: min(max(100vw, calc(100vh * 1672 / 941)), 280vw); --h: calc(var(--w) * 941 / 1672); }
-#menu::before { content: ""; position: absolute; inset: -40px; background: url(img/menu.webp) center / cover no-repeat; filter: blur(22px) brightness(.8); }
+#menu, #office-screen { background: #000; overflow: hidden; --w: min(max(100vw, calc(100vh * 1672 / 941)), 280vw); --h: calc(var(--w) * 941 / 1672); }
+#menu { --img: url(img/menu.webp); }
+#menu::before, #office-screen::before { content: ""; position: absolute; inset: -40px; background: var(--img) center / cover no-repeat; filter: blur(22px) brightness(.8); }
 .stage { position: absolute; width: var(--w); height: var(--h);
   left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
-  background: url(img/menu.webp) center / 100% 100% no-repeat; }
+  background: var(--img) center / 100% 100% no-repeat; }
 /* Sehr schmales Hochformat: Bild ist kleiner als der Bildschirm → Ober-/Unterkante weich ausblenden */
 @media (max-aspect-ratio: 635/1000) {
   .stage { -webkit-mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); mask-image: linear-gradient(transparent, #000 14%, #000 86%, transparent); }
@@ -24,8 +25,16 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 .hit:active { background: rgba(0,0,0,.22); }
 
 /* ---------- Büro des gewählten Landes ---------- */
-#office-screen { background: #000; overflow: hidden; }
-.office { position: absolute; inset: 0; background: center / cover no-repeat; }
+/* Klick auf den PC: langsames Hineinzoomen (als würde man sich vorbeugen), dann Überblendung
+   in die Desktop-Ansicht. Beide Ebenen sind gleich groß, daher reicht reines CSS. */
+#office-screen .stage { transform-origin: 47.82% 52.5%; transition: transform 2s cubic-bezier(.5, 0, .3, 1); }
+#office-screen.zoomed .stage { transform: translate(calc(var(--w) * .0206), calc(var(--h) * -.0707)) scale(3.3); }
+#office-screen.zoomed .hit { pointer-events: none; }
+.desk { position: absolute; z-index: 1; width: var(--w); height: var(--h); left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
+  background: url(img/desktop.webp) center / 100% 100% no-repeat; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
+#office-screen.zoomed .desk { opacity: 1; transition: opacity .7s ease 1.2s; }
+.back.lean { left: auto; right: 14px; width: auto; padding: 0 18px; font-size: 17px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .3s; }
+#office-screen.zoomed .lean { opacity: 1; pointer-events: auto; transition: opacity .4s ease 1.7s; }
 
 /* Pause-Button und -Menü im Spiel */
 .pause { display: flex; align-items: center; justify-content: center; gap: 7px; }

@@ -13,7 +13,7 @@
 
   const $ = (id) => document.getElementById(id);
   const screens = { menu: $('menu'), globe: $('globe-screen'), office: $('office-screen') };
-  function show(name) { dirty = true; $('pause-menu').hidden = true; for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
+  function show(name) { dirty = true; $('pause-menu').hidden = true; screens.office.classList.remove('zoomed'); for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
 
   let toastTimer;
   function toast(msg) {
@@ -30,6 +30,8 @@
   $('btn-pause').onclick = () => { pauseMenu.hidden = false; };
   $('btn-resume').onclick = () => { pauseMenu.hidden = true; };
   $('btn-quit').onclick = () => show('menu');
+  $('btn-pc').onclick = () => screens.office.classList.add('zoomed');      // zum PC vorbeugen
+  $('btn-lean').onclick = () => screens.office.classList.remove('zoomed'); // wieder zurücklehnen
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && screens.office.classList.contains('active')) pauseMenu.hidden = !pauseMenu.hidden;
   });
@@ -274,7 +276,7 @@
     const c = COUNTRIES[selected];
     window.WorldCommand = { mode: 'single', country: c.name };
     if (!c.office) { toast('Für ' + c.name + ' gibt es noch keinen Bildschirm'); return; }
-    $('office').style.backgroundImage = 'url(' + c.office + ')';
+    screens.office.style.setProperty('--img', 'url(' + c.office + ')');
     show('office');
   };
 })();

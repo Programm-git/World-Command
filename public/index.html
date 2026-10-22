@@ -29,8 +29,13 @@
 
   <!-- Bildschirm 3: Büro des gewählten Landes -->
   <section id="office-screen" class="screen">
-    <div id="office" class="office"></div>
+    <div class="stage">
+      <!-- Klickfläche über dem PC-Monitor: zoomt in den Desktop -->
+      <button id="btn-pc" class="hit" style="left:32.5%;top:37.2%;width:30.7%;height:38.8%" aria-label="Computer"></button>
+    </div>
+    <div id="desktop" class="desk"></div>
     <button id="btn-pause" class="back pause" aria-label="Pause"><span></span><span></span></button>
+    <button id="btn-lean" class="back lean">Zurücklehnen</button>
     <div id="pause-menu" class="overlay" hidden>
       <div class="panel">
         <h2>Pause</h2>
