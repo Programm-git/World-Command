@@ -39,7 +39,7 @@
   function resetOffice() { clearTimeout(readyTimer); screens.office.classList.remove('zoomed', 'ready', 'app-open'); }
 
   // ---------- Zivil-Programm (Bunkerübersicht) ----------
-  const ZIVIL = { 'USA': [1, 2, 3, 4, 5].map((n) => 'img/zivil-usa-' + n + '.webp') };   // Bunker 06–10 folgen
+  const ZIVIL = { 'USA': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => 'img/zivil-usa-' + n + '.webp') }; 
   function zivilPages() { return ZIVIL[(window.WorldCommand || {}).country]; }
   $('btn-zivil').onclick = () => {
     const pages = zivilPages();
