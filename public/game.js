@@ -46,10 +46,10 @@
     if (!pages) { toast('Zivil ist für dieses Land noch nicht verfügbar'); return; }
     showBunker(0);
   };
-  // Upgrades (Schutzplätze, nur USA): je Bunker Stufe 1–5, jedes Upgrade bringt +10.000 Plätze.
-  // Die Texte im Bild werden übermalt und mit den aktuellen Werten neu gezeichnet.
-  const MAX_LEVEL = 5, PER_UPGRADE = 10000, BASE_PLACES = 10000, BUNKERS = 10;
-  const levels = Array(BUNKERS).fill(1);
+  // Upgrades (nur USA): je Bunker und Feld Stufe 1–5 (vier Upgrades). Die Texte im Bild werden übermalt
+  // und mit den aktuellen Werten neu gezeichnet. Schutzplätze: +10.000 Plätze (und Gesamtkapazität),
+  // Vorräte: +7 Tage, Medizin: +25 Personen pro Upgrade.
+  const MAX_LEVEL = 5, BUNKERS = 10, BASE_PLACES = 10000, PER_UPGRADE = 10000;
   let current = 0;
   const fx = $('app-fx').getContext('2d');
   const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -64,30 +64,51 @@
     fx.font = f.w + ' ' + size + 'px ' + FONT; fx.fillStyle = f.c; fx.textBaseline = 'alphabetic';
     fx.fillText(str, f.x, f.base);
   }
-  const FIELDS = {
-    places: { x0: 1376, x1: 1500, y0: 221, y1: 257, src: 1371, x: 1380, base: 253, ref: '10.000', refW: 116, w: 800, c: 'rgb(11,12,61)' },
-    sub:    { x0: 1376, x1: 1546, y0: 259, y1: 282, src: 1371, x: 1379, base: 275, ref: '+5.000 pro Upgrade', refW: 153, w: 600, c: 'rgb(36,40,91)' },
-    stage:  { x0: 1261, x1: 1349, y0: 298, y1: 321, src: 1255, x: 1265, base: 315, ref: 'Stufe 1/5', refW: 79, w: 600, c: 'rgb(19,21,64)' },
-    total:  { x0: 567, x1: 724, y0: 766, y1: 801, src: 556, x: 571, base: 798, ref: '100.000', refW: 146, w: 800, c: 'rgb(8,9,53)' },
-  };
+  const NAVY = 'rgb(11,12,61)', SUB = 'rgb(36,40,91)', STUFE = 'rgb(19,21,64)';
+  const TRACKS = [
+    { key: 'places', label: 'Schutzplätzen', btn: 'btn-upg-people', button: [1243, 329, 321, 46],
+      big: { x0: 1376, x1: 1500, y0: 221, y1: 257, src: 1371, x: 1380, base: 253, ref: '10.000', refW: 116, w: 800, c: NAVY },
+      bigText: (L) => fmt(BASE_PLACES + PER_UPGRADE * (L - 1)),
+      sub: { x0: 1376, x1: 1546, y0: 259, y1: 282, src: 1371, x: 1379, base: 275, ref: '+5.000 pro Upgrade', refW: 153, w: 600, c: SUB },
+      subText: '+' + fmt(PER_UPGRADE) + ' pro Upgrade',                      // im Bild steht +5.000 → immer neu zeichnen
+      stage: { x0: 1261, x1: 1349, y0: 298, y1: 321, src: 1255, x: 1265, base: 315, ref: 'Stufe 1/5', refW: 79, w: 600, c: STUFE } },
+    { key: 'food', label: 'Vorräten', btn: 'btn-upg-food', button: [1245, 553, 323, 44],
+      big: { x0: 1382, x1: 1506, y0: 434, y1: 474, src: 1371, x: 1386, base: 463, ref: '7 Tage', refW: 110, w: 800, c: NAVY },
+      bigText: (L) => 7 * L + ' Tage',
+      sub: { x0: 1382, x1: 1562, y0: 473, y1: 494, src: 1371, x: 1386, base: 487, ref: '+7 Tage pro Upgrade', refW: 167, w: 600, c: SUB },
+      stage: { x0: 1261, x1: 1349, y0: 521, y1: 542, src: 1255, x: 1265, base: 538, ref: 'Stufe 1/5', refW: 81, w: 600, c: STUFE } },
+    { key: 'med', label: 'Medizin', btn: 'btn-upg-med', button: [1247, 766, 323, 40],
+      big: { x0: 1379, x1: 1566, y0: 646, y1: 676, src: 1371, x: 1383, base: 672, ref: '50 Personen', refW: 164, w: 800, c: NAVY },
+      bigText: (L) => 50 + 25 * (L - 1) + ' Personen',
+      sub: { x0: 1379, x1: 1524, y0: 701, y1: 722, src: 1371, x: 1383, base: 716, ref: '+25 pro Upgrade', refW: 124, w: 600, c: SUB },
+      stage: { x0: 1261, x1: 1349, y0: 734, y1: 757, src: 1255, x: 1266, base: 752, ref: 'Stufe 1/5', refW: 80, w: 600, c: STUFE } },
+  ];
+  TRACKS.forEach((t) => { t.lv = Array(BUNKERS).fill(1); });
+  const TOTAL = { x0: 567, x1: 724, y0: 766, y1: 801, src: 556, x: 571, base: 798, ref: '100.000', refW: 146, w: 800, c: 'rgb(8,9,53)' };
   function drawUpgrades() {
     fx.clearRect(0, 0, 1672, 941);
-    const img = pageImage(current), L = levels[current], extra = levels.reduce((n, l) => n + l - 1, 0);
+    const img = pageImage(current);
     if (!img.complete) { img.onload = drawUpgrades; return; }
-    if (L > 1) { retext(img, FIELDS.places, fmt(BASE_PLACES + PER_UPGRADE * (L - 1))); retext(img, FIELDS.stage, 'Stufe ' + L + '/' + MAX_LEVEL); }
-    retext(img, FIELDS.sub, L >= MAX_LEVEL ? 'Maximalstufe erreicht' : '+' + fmt(PER_UPGRADE) + ' pro Upgrade');
-    if (extra > 0) retext(img, FIELDS.total, fmt(BUNKERS * BASE_PLACES + PER_UPGRADE * extra));
-    if (L >= MAX_LEVEL) {                                                    // Button ausgegraut
-      const g = fx.createLinearGradient(0, 329, 0, 375); g.addColorStop(0, '#d9dbe3'); g.addColorStop(1, '#a9adbb');
-      fx.fillStyle = g; fx.beginPath(); fx.roundRect(1243, 329, 321, 46, 12); fx.fill();
-      fx.font = '800 22px ' + FONT; fx.fillStyle = 'rgb(70,74,100)'; fx.textAlign = 'center'; fx.textBaseline = 'middle';
-      fx.fillText('Maximal', 1403.5, 353); fx.textAlign = 'left';
+    for (const t of TRACKS) {
+      const L = t.lv[current], max = L >= MAX_LEVEL;
+      if (L > 1) { retext(img, t.big, t.bigText(L)); retext(img, t.stage, 'Stufe ' + L + '/' + MAX_LEVEL); }
+      if (max) retext(img, t.sub, 'Maximalstufe erreicht'); else if (t.subText) retext(img, t.sub, t.subText);
+      if (max) {                                                             // Button ausgegraut
+        const [x, y, w, h] = t.button, g = fx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#d9dbe3'); g.addColorStop(1, '#a9adbb');
+        fx.fillStyle = g; fx.beginPath(); fx.roundRect(x, y, w, h, 12); fx.fill();
+        fx.font = '800 22px ' + FONT; fx.fillStyle = 'rgb(70,74,100)'; fx.textAlign = 'center'; fx.textBaseline = 'middle';
+        fx.fillText('Maximal', x + w / 2, y + h / 2 + 1); fx.textAlign = 'left';
+      }
     }
+    const extra = TRACKS[0].lv.reduce((n, l) => n + l - 1, 0);               // Gesamtkapazität zählt nur die Schutzplätze
+    if (extra > 0) retext(img, TOTAL, fmt(BUNKERS * BASE_PLACES + PER_UPGRADE * extra));
   }
-  $('btn-upg-people').onclick = () => {
-    if (levels[current] >= MAX_LEVEL) { toast('Bunker ' + String(current + 1).padStart(2, '0') + ' hat die Maximalstufe erreicht'); return; }
-    levels[current]++; drawUpgrades();
-  };
+  for (const t of TRACKS) {
+    $(t.btn).onclick = () => {
+      if (t.lv[current] >= MAX_LEVEL) { toast('Bunker ' + String(current + 1).padStart(2, '0') + ': Maximalstufe bei ' + t.label + ' erreicht'); return; }
+      t.lv[current]++; drawUpgrades();
+    };
+  }
   function showBunker(i) {
     const pages = zivilPages();
     if (!pages || !pages[i]) { toast('Bunker ' + String(i + 1).padStart(2, '0') + ' folgt'); return; }
@@ -342,7 +363,7 @@
     if (!selected) return;
     const c = COUNTRIES[selected];
     window.WorldCommand = { mode: 'single', country: c.name };
-    levels.fill(1);                                                       // neues Spiel: alle Bunker auf Stufe 1
+    TRACKS.forEach((t) => t.lv.fill(1));                                  // neues Spiel: alle Bunker auf Stufe 1
     if (!c.office) { toast('Für ' + c.name + ' gibt es noch keinen Bildschirm'); return; }
     screens.office.style.setProperty('--img', 'url(' + c.office + ')');
     (ZIVIL[c.name] || []).forEach((u) => { new Image().src = u; });          // vorladen
