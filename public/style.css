@@ -37,6 +37,13 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 .desk { position: absolute; z-index: 1; width: var(--w); height: var(--h); left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
   background: url(img/desktop.webp) center / 100% 100% no-repeat; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
 #office-screen.zoomed .desk { opacity: 1; transition: opacity .7s ease 1.2s; }
+/* Zivil-Programm: Ebene über dem Desktop, nur nach dem Hineinzoomen bedienbar */
+.desk .hit, .app .hit { pointer-events: none; }
+#office-screen.ready .desk .hit { pointer-events: auto; }
+.app { position: absolute; z-index: 1; width: var(--w); height: var(--h); left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
+  background: var(--app) center / 100% 100% no-repeat; opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+#office-screen.app-open .app { opacity: 1; pointer-events: auto; }
+#office-screen.app-open .app .hit { pointer-events: auto; }
 .back.lean { left: auto; right: 14px; width: auto; padding: 0 18px; font-size: 17px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .3s; }
 #office-screen.zoomed .lean { opacity: 1; pointer-events: auto; transition: opacity .4s ease 1.7s; }
 

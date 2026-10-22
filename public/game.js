@@ -13,7 +13,7 @@
 
   const $ = (id) => document.getElementById(id);
   const screens = { menu: $('menu'), globe: $('globe-screen'), office: $('office-screen') };
-  function show(name) { dirty = true; $('pause-menu').hidden = true; screens.office.classList.remove('zoomed'); for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
+  function show(name) { dirty = true; $('pause-menu').hidden = true; resetOffice(); for (const k in screens) screens[k].classList.toggle('active', k === name); if (name === 'globe') resize(); }
 
   let toastTimer;
   function toast(msg) {
@@ -30,8 +30,31 @@
   $('btn-pause').onclick = () => { pauseMenu.hidden = false; };
   $('btn-resume').onclick = () => { pauseMenu.hidden = true; };
   $('btn-quit').onclick = () => show('menu');
-  $('btn-pc').onclick = () => screens.office.classList.add('zoomed');      // zum PC vorbeugen
-  $('btn-lean').onclick = () => screens.office.classList.remove('zoomed'); // wieder zurücklehnen
+  let readyTimer;
+  $('btn-pc').onclick = () => {                                              // zum PC vorbeugen
+    screens.office.classList.add('zoomed');
+    clearTimeout(readyTimer); readyTimer = setTimeout(() => screens.office.classList.add('ready'), 1900);  // bedienbar, sobald der Zoom fertig ist
+  };
+  $('btn-lean').onclick = resetOffice;                                       // wieder zurücklehnen
+  function resetOffice() { clearTimeout(readyTimer); screens.office.classList.remove('zoomed', 'ready', 'app-open'); }
+
+  // ---------- Zivil-Programm (Bunkerübersicht) ----------
+  const ZIVIL = { 'USA': [1, 2, 3, 4, 5].map((n) => 'img/zivil-usa-' + n + '.webp') };   // Bunker 06–10 folgen
+  function zivilPages() { return ZIVIL[(window.WorldCommand || {}).country]; }
+  $('btn-zivil').onclick = () => {
+    const pages = zivilPages();
+    if (!pages) { toast('Zivil ist für dieses Land noch nicht verfügbar'); return; }
+    showBunker(0);
+  };
+  function showBunker(i) {
+    const pages = zivilPages();
+    if (!pages || !pages[i]) { toast('Bunker ' + String(i + 1).padStart(2, '0') + ' folgt'); return; }
+    $('app-zivil').style.setProperty('--app', 'url(' + pages[i] + ')');
+    screens.office.classList.add('app-open');
+  }
+  document.querySelectorAll('.bunker').forEach((b) => { b.onclick = () => showBunker(+b.dataset.i); });
+  const closeApp = () => screens.office.classList.remove('app-open');
+  $('btn-app-close').onclick = closeApp; $('btn-app-min').onclick = closeApp;
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && screens.office.classList.contains('active')) pauseMenu.hidden = !pauseMenu.hidden;
   });
@@ -277,6 +300,7 @@
     window.WorldCommand = { mode: 'single', country: c.name };
     if (!c.office) { toast('Für ' + c.name + ' gibt es noch keinen Bildschirm'); return; }
     screens.office.style.setProperty('--img', 'url(' + c.office + ')');
+    (ZIVIL[c.name] || []).forEach((u) => { new Image().src = u; });          // vorladen
     show('office');
   };
 })();
