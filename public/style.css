@@ -42,6 +42,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
 #office-screen.ready .desk .hit { pointer-events: auto; }
 .app { position: absolute; z-index: 1; width: var(--w); height: var(--h); left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
   background: var(--app) center / 100% 100% no-repeat; opacity: 0; pointer-events: none; transition: opacity .3s ease; }
+#app-fx { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
 #office-screen.app-open .app { opacity: 1; pointer-events: auto; }
 #office-screen.app-open .app .hit { pointer-events: auto; }
 .back.lean { left: auto; right: 14px; width: auto; padding: 0 18px; font-size: 17px; font-weight: 700; opacity: 0; pointer-events: none; transition: opacity .3s; }

@@ -46,10 +46,54 @@
     if (!pages) { toast('Zivil ist für dieses Land noch nicht verfügbar'); return; }
     showBunker(0);
   };
+  // Upgrades (Schutzplätze, nur USA): je Bunker Stufe 1–5, jedes Upgrade bringt +10.000 Plätze.
+  // Die Texte im Bild werden übermalt und mit den aktuellen Werten neu gezeichnet.
+  const MAX_LEVEL = 5, PER_UPGRADE = 10000, BASE_PLACES = 10000, BUNKERS = 10;
+  const levels = Array(BUNKERS).fill(1);
+  let current = 0;
+  const fx = $('app-fx').getContext('2d');
+  const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif';
+  const fmt = (n) => n.toLocaleString('de-DE');
+  const pageImg = [];
+  function pageImage(i) { return pageImg[i] || (pageImg[i] = Object.assign(new Image(), { src: zivilPages()[i] })); }
+  // Textfeld: Hintergrund mit einer benachbarten Pixelspalte übermalen, dann Text mit gleicher Breite wie das Original
+  function retext(img, f, str) {
+    fx.drawImage(img, f.src, f.y0, 1, f.y1 - f.y0, f.x0, f.y0, f.x1 - f.x0, f.y1 - f.y0);
+    fx.font = f.w + ' 100px ' + FONT;
+    const size = 100 * f.refW / fx.measureText(f.ref).width;
+    fx.font = f.w + ' ' + size + 'px ' + FONT; fx.fillStyle = f.c; fx.textBaseline = 'alphabetic';
+    fx.fillText(str, f.x, f.base);
+  }
+  const FIELDS = {
+    places: { x0: 1376, x1: 1500, y0: 221, y1: 257, src: 1371, x: 1380, base: 253, ref: '10.000', refW: 116, w: 800, c: 'rgb(11,12,61)' },
+    sub:    { x0: 1376, x1: 1546, y0: 259, y1: 282, src: 1371, x: 1379, base: 275, ref: '+5.000 pro Upgrade', refW: 153, w: 600, c: 'rgb(36,40,91)' },
+    stage:  { x0: 1261, x1: 1349, y0: 298, y1: 321, src: 1255, x: 1265, base: 315, ref: 'Stufe 1/5', refW: 79, w: 600, c: 'rgb(19,21,64)' },
+    total:  { x0: 567, x1: 724, y0: 766, y1: 801, src: 556, x: 571, base: 798, ref: '100.000', refW: 146, w: 800, c: 'rgb(8,9,53)' },
+  };
+  function drawUpgrades() {
+    fx.clearRect(0, 0, 1672, 941);
+    const img = pageImage(current), L = levels[current], extra = levels.reduce((n, l) => n + l - 1, 0);
+    if (!img.complete) { img.onload = drawUpgrades; return; }
+    if (L > 1) { retext(img, FIELDS.places, fmt(BASE_PLACES + PER_UPGRADE * (L - 1))); retext(img, FIELDS.stage, 'Stufe ' + L + '/' + MAX_LEVEL); }
+    retext(img, FIELDS.sub, L >= MAX_LEVEL ? 'Maximalstufe erreicht' : '+' + fmt(PER_UPGRADE) + ' pro Upgrade');
+    if (extra > 0) retext(img, FIELDS.total, fmt(BUNKERS * BASE_PLACES + PER_UPGRADE * extra));
+    if (L >= MAX_LEVEL) {                                                    // Button ausgegraut
+      const g = fx.createLinearGradient(0, 329, 0, 375); g.addColorStop(0, '#d9dbe3'); g.addColorStop(1, '#a9adbb');
+      fx.fillStyle = g; fx.beginPath(); fx.roundRect(1243, 329, 321, 46, 12); fx.fill();
+      fx.font = '800 22px ' + FONT; fx.fillStyle = 'rgb(70,74,100)'; fx.textAlign = 'center'; fx.textBaseline = 'middle';
+      fx.fillText('Maximal', 1403.5, 353); fx.textAlign = 'left';
+    }
+  }
+  $('btn-upg-people').onclick = () => {
+    if (levels[current] >= MAX_LEVEL) { toast('Bunker ' + String(current + 1).padStart(2, '0') + ' hat die Maximalstufe erreicht'); return; }
+    levels[current]++; drawUpgrades();
+  };
   function showBunker(i) {
     const pages = zivilPages();
     if (!pages || !pages[i]) { toast('Bunker ' + String(i + 1).padStart(2, '0') + ' folgt'); return; }
+    current = i;
     $('app-zivil').style.setProperty('--app', 'url(' + pages[i] + ')');
+    drawUpgrades();
     screens.office.classList.add('app-open');
   }
   document.querySelectorAll('.bunker').forEach((b) => { b.onclick = () => showBunker(+b.dataset.i); });
@@ -298,6 +342,7 @@
     if (!selected) return;
     const c = COUNTRIES[selected];
     window.WorldCommand = { mode: 'single', country: c.name };
+    levels.fill(1);                                                       // neues Spiel: alle Bunker auf Stufe 1
     if (!c.office) { toast('Für ' + c.name + ' gibt es noch keinen Bildschirm'); return; }
     screens.office.style.setProperty('--img', 'url(' + c.office + ')');
     (ZIVIL[c.name] || []).forEach((u) => { new Image().src = u; });          // vorladen
