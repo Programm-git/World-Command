@@ -29,6 +29,9 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #05060f; col
    in die Desktop-Ansicht. Beide Ebenen sind gleich groß, daher reicht reines CSS. */
 #office-screen .stage { transform-origin: 47.82% 52.5%; transition: transform 2s cubic-bezier(.5, 0, .3, 1); }
 #office-screen.zoomed .stage { transform: translate(calc(var(--w) * .0206), calc(var(--h) * -.0707)) scale(3.3); }
+.pcscreen { position: absolute; left: 33.88%; top: 39.149%; width: 27.874%; height: 26.696%; overflow: hidden; border-radius: .5% / 1%; pointer-events: none; }
+.pcscreen div { position: absolute; left: -4.226%; top: -1.568%; width: 108.713%; height: 113.51%;
+  background: url(img/desktop.webp) center / 100% 100% no-repeat; }
 #office-screen.zoomed .hit { pointer-events: none; }
 .desk { position: absolute; z-index: 1; width: var(--w); height: var(--h); left: calc(50vw - var(--w) / 2); top: calc(50vh - var(--h) / 2);
   background: url(img/desktop.webp) center / 100% 100% no-repeat; opacity: 0; pointer-events: none; transition: opacity .5s ease; }
