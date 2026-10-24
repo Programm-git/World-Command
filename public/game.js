@@ -39,10 +39,18 @@
   function resetOffice() { clearTimeout(readyTimer); screens.office.classList.remove('zoomed', 'ready', 'app-open'); }
 
   // ---------- Zivil-Programm (Bunkerübersicht) ----------
-  // Bunkeransichten je Land (Anzahl der Bunker = Anzahl der Seiten)
+  // Bunker je Land: count = Anzahl in der Liste, pages = vorhandene Bilder (Bunker ohne Bild zeigen "folgt"),
+  // rows = Mitte der Listenzeilen im Bild, dx = Textversatz der Zahlen (Pixel) gegenüber der Vorlage.
   const pagesOf = (tag, n) => Array.from({ length: n }, (_, k) => 'img/zivil-' + tag + '-' + (k + 1) + '.webp');
-  const ZIVIL = { 'USA': pagesOf('usa', 10), 'Deutschland': pagesOf('deu', 4) };
-  function zivilPages() { return ZIVIL[(window.WorldCommand || {}).country]; }
+  const ROWS10 = [205, 265, 324, 383, 443, 502, 563, 623, 684, 745], ROWS4 = [205, 265, 324, 383];
+  const ROWS12 = [205, 253, 300, 348, 397, 446, 495, 543, 594, 643, 695, 745];
+  const ZIVIL = {
+    'USA': { count: 10, pages: pagesOf('usa', 10), rows: ROWS10, dx: 0 },
+    'Deutschland': { count: 4, pages: pagesOf('deu', 4), rows: ROWS4, dx: 0 },
+    'China': { count: 12, pages: pagesOf('chn', 4), rows: ROWS12, dx: -2 },
+  };
+  const zivil = () => ZIVIL[(window.WorldCommand || {}).country];
+  function zivilPages() { const z = zivil(); return z && z.pages; }
   $('btn-zivil').onclick = () => {
     const pages = zivilPages();
     if (!pages) { toast('Zivil ist für dieses Land noch nicht verfügbar'); return; }
@@ -51,15 +59,16 @@
   // Upgrades (nur USA): je Bunker und Feld Stufe 1–5 (vier Upgrades). Die Texte im Bild werden übermalt
   // und mit den aktuellen Werten neu gezeichnet. Schutzplätze: +10.000 Plätze (und Gesamtkapazität),
   // Vorräte: +7 Tage, Medizin: +25 Personen pro Upgrade.
-  const MAX_LEVEL = 5, MAX_BUNKERS = 10, BASE_PLACES = 10000, PER_UPGRADE = 10000;
+  const MAX_LEVEL = 5, MAX_BUNKERS = 12, BASE_PLACES = 10000, PER_UPGRADE = 10000;
   let current = 0;
   const fx = $('app-fx').getContext('2d');
   const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif';
   const fmt = (n) => n.toLocaleString('de-DE');
-  const pageImg = [];
-  function pageImage(i) { return pageImg[i] || (pageImg[i] = Object.assign(new Image(), { src: zivilPages()[i] })); }
+  const pageImg = {};
+  function pageImage(i) { const u = zivilPages()[i]; return pageImg[u] || (pageImg[u] = Object.assign(new Image(), { src: u })); }   // Cache je Bild-URL (nicht je Land/Nummer)
   // Textfeld: Hintergrund mit einer benachbarten Pixelspalte übermalen, dann Text mit gleicher Breite wie das Original
-  function retext(img, f, str) {
+  function retext(img, f, str, dx = 0) {
+    f = dx ? { ...f, x0: f.x0 + dx, x1: f.x1 + dx, x: f.x + dx } : f;
     fx.drawImage(img, f.src, f.y0, 1, f.y1 - f.y0, f.x0, f.y0, f.x1 - f.x0, f.y1 - f.y0);
     fx.font = f.w + ' 100px ' + FONT;
     const size = 100 * f.refW / fx.measureText(f.ref).width;
@@ -86,15 +95,15 @@
       stage: { x0: 1261, x1: 1349, y0: 734, y1: 757, src: 1255, x: 1266, base: 752, ref: 'Stufe 1/5', refW: 80, w: 600, c: STUFE } },
   ];
   TRACKS.forEach((t) => { t.lv = Array(MAX_BUNKERS).fill(1); });
-  const TOTAL = { x0: 567, x1: 724, y0: 766, y1: 801, src: 556, x: 571, base: 798, ref: '100.000', refW: 146, w: 800, c: 'rgb(8,9,53)' };
+  const TOTAL = { x0: 567, x1: 740, y0: 766, y1: 801, src: 556, x: 571, base: 798, ref: '100.000', refW: 146, w: 800, c: 'rgb(8,9,53)' };
   function drawUpgrades() {
     fx.clearRect(0, 0, 1672, 941);
-    const img = pageImage(current);
+    const img = pageImage(current), dx = zivil().dx;
     if (!img.complete) { img.onload = drawUpgrades; return; }
     for (const t of TRACKS) {
       const L = t.lv[current], max = L >= MAX_LEVEL;
-      if (L > 1) { retext(img, t.big, t.bigText(L)); retext(img, t.stage, 'Stufe ' + L + '/' + MAX_LEVEL); }
-      if (max) retext(img, t.sub, 'Maximalstufe erreicht'); else if (t.subText) retext(img, t.sub, t.subText);
+      if (L > 1) { retext(img, t.big, t.bigText(L), dx); retext(img, t.stage, 'Stufe ' + L + '/' + MAX_LEVEL); }
+      if (max) retext(img, t.sub, 'Maximalstufe erreicht', dx); else if (t.subText) retext(img, t.sub, t.subText, dx);
       if (max) {                                                             // Button ausgegraut
         const [x, y, w, h] = t.button, g = fx.createLinearGradient(0, y, 0, y + h); g.addColorStop(0, '#d9dbe3'); g.addColorStop(1, '#a9adbb');
         fx.fillStyle = g; fx.beginPath(); fx.roundRect(x, y, w, h, 12); fx.fill();
@@ -103,7 +112,7 @@
       }
     }
     const extra = TRACKS[0].lv.reduce((n, l) => n + l - 1, 0);               // Gesamtkapazität zählt nur die Schutzplätze
-    if (extra > 0) retext(img, TOTAL, fmt(zivilPages().length * BASE_PLACES + PER_UPGRADE * extra));
+    if (extra > 0) retext(img, TOTAL, fmt(zivil().count * BASE_PLACES + PER_UPGRADE * extra));
   }
   for (const t of TRACKS) {
     $(t.btn).onclick = () => {
@@ -112,11 +121,16 @@
     };
   }
   function showBunker(i) {
-    const pages = zivilPages();
-    if (!pages || !pages[i]) return;
+    const z = zivil();
+    if (!z) return;
+    if (!z.pages[i]) { toast('Bunker ' + String(i + 1).padStart(2, '0') + ' folgt'); return; }   // Bild noch nicht vorhanden
     current = i;
-    document.querySelectorAll('.bunker').forEach((b, k) => { b.hidden = k >= pages.length; });   // nur vorhandene Bunker anklickbar
-    $('app-zivil').style.setProperty('--app', 'url(' + pages[i] + ')');
+    const step = z.rows.length > 1 ? z.rows[1] - z.rows[0] : 60, h = Math.min(56, step - 3);       // Klickflächen auf die Listenzeilen legen
+    document.querySelectorAll('.bunker').forEach((b, k) => {
+      b.hidden = k >= z.count;
+      if (k < z.count) { b.style.top = ((z.rows[k] - h / 2) / 941 * 100).toFixed(2) + '%'; b.style.height = (h / 941 * 100).toFixed(2) + '%'; }
+    });
+    $('app-zivil').style.setProperty('--app', 'url(' + z.pages[i] + ')');
     drawUpgrades();
     screens.office.classList.add('app-open');
   }
@@ -369,7 +383,7 @@
     TRACKS.forEach((t) => t.lv.fill(1));                                  // neues Spiel: alle Bunker auf Stufe 1
     if (!c.office) { toast('Für ' + c.name + ' gibt es noch keinen Bildschirm'); return; }
     screens.office.style.setProperty('--img', 'url(' + c.office + ')');
-    (ZIVIL[c.name] || []).forEach((u) => { new Image().src = u; });          // vorladen
+    ((ZIVIL[c.name] || {}).pages || []).forEach((u) => { new Image().src = u; });          // vorladen
     show('office');
   };
 })();
