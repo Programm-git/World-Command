@@ -39,7 +39,9 @@
   function resetOffice() { clearTimeout(readyTimer); screens.office.classList.remove('zoomed', 'ready', 'app-open'); }
 
   // ---------- Zivil-Programm (Bunkerübersicht) ----------
-  const ZIVIL = { 'USA': [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => 'img/zivil-usa-' + n + '.webp') }; 
+  // Bunkeransichten je Land (Anzahl der Bunker = Anzahl der Seiten)
+  const pagesOf = (tag, n) => Array.from({ length: n }, (_, k) => 'img/zivil-' + tag + '-' + (k + 1) + '.webp');
+  const ZIVIL = { 'USA': pagesOf('usa', 10), 'Deutschland': pagesOf('deu', 4) };
   function zivilPages() { return ZIVIL[(window.WorldCommand || {}).country]; }
   $('btn-zivil').onclick = () => {
     const pages = zivilPages();
@@ -49,7 +51,7 @@
   // Upgrades (nur USA): je Bunker und Feld Stufe 1–5 (vier Upgrades). Die Texte im Bild werden übermalt
   // und mit den aktuellen Werten neu gezeichnet. Schutzplätze: +10.000 Plätze (und Gesamtkapazität),
   // Vorräte: +7 Tage, Medizin: +25 Personen pro Upgrade.
-  const MAX_LEVEL = 5, BUNKERS = 10, BASE_PLACES = 10000, PER_UPGRADE = 10000;
+  const MAX_LEVEL = 5, MAX_BUNKERS = 10, BASE_PLACES = 10000, PER_UPGRADE = 10000;
   let current = 0;
   const fx = $('app-fx').getContext('2d');
   const FONT = '"Segoe UI", system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif';
@@ -83,7 +85,7 @@
       sub: { x0: 1379, x1: 1524, y0: 701, y1: 722, src: 1371, x: 1383, base: 716, ref: '+25 pro Upgrade', refW: 124, w: 600, c: SUB },
       stage: { x0: 1261, x1: 1349, y0: 734, y1: 757, src: 1255, x: 1266, base: 752, ref: 'Stufe 1/5', refW: 80, w: 600, c: STUFE } },
   ];
-  TRACKS.forEach((t) => { t.lv = Array(BUNKERS).fill(1); });
+  TRACKS.forEach((t) => { t.lv = Array(MAX_BUNKERS).fill(1); });
   const TOTAL = { x0: 567, x1: 724, y0: 766, y1: 801, src: 556, x: 571, base: 798, ref: '100.000', refW: 146, w: 800, c: 'rgb(8,9,53)' };
   function drawUpgrades() {
     fx.clearRect(0, 0, 1672, 941);
@@ -101,7 +103,7 @@
       }
     }
     const extra = TRACKS[0].lv.reduce((n, l) => n + l - 1, 0);               // Gesamtkapazität zählt nur die Schutzplätze
-    if (extra > 0) retext(img, TOTAL, fmt(BUNKERS * BASE_PLACES + PER_UPGRADE * extra));
+    if (extra > 0) retext(img, TOTAL, fmt(zivilPages().length * BASE_PLACES + PER_UPGRADE * extra));
   }
   for (const t of TRACKS) {
     $(t.btn).onclick = () => {
@@ -111,8 +113,9 @@
   }
   function showBunker(i) {
     const pages = zivilPages();
-    if (!pages || !pages[i]) { toast('Bunker ' + String(i + 1).padStart(2, '0') + ' folgt'); return; }
+    if (!pages || !pages[i]) return;
     current = i;
+    document.querySelectorAll('.bunker').forEach((b, k) => { b.hidden = k >= pages.length; });   // nur vorhandene Bunker anklickbar
     $('app-zivil').style.setProperty('--app', 'url(' + pages[i] + ')');
     drawUpgrades();
     screens.office.classList.add('app-open');
