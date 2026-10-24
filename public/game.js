@@ -47,7 +47,7 @@
   const ZIVIL = {
     'USA': { count: 10, pages: pagesOf('usa', 10), rows: ROWS10, dx: 0 },
     'Deutschland': { count: 4, pages: pagesOf('deu', 4), rows: ROWS4, dx: 0 },
-    'China': { count: 12, pages: pagesOf('chn', 4), rows: ROWS12, dx: -2 },
+    'China': { count: 12, pages: pagesOf('chn', 8), rows: ROWS12, dx: -2 },
   };
   const zivil = () => ZIVIL[(window.WorldCommand || {}).country];
   function zivilPages() { const z = zivil(); return z && z.pages; }
